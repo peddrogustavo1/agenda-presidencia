@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda da Presidência – INSS</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f6fa;--card:#fff;--ink:#14213d;--mute:#64708a;--line:#e3e8f0;--brand:#1b4b9b;--brand-ink:#fff;--danger:#c0392b;
+--t1:#1b6ef3;--t2:#7c4dff;--t3:#12a36b;--t4:#e58a00;--t5:#5b6b82;--shadow:0 1px 2px rgba(20,33,61,.06),0 8px 24px rgba(20,33,61,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--card:#171f2f;--ink:#e8edf7;--mute:#92a0ba;--line:#26314a;--brand:#5b8ff0;--brand-ink:#0e1420;--danger:#ff7b6b;--t1:#5b9bff;--t2:#a58bff;--t3:#3dd598;--t4:#ffb84a;--t5:#9aa8bf;--shadow:0 1px 2px rgba(0,0,0,.3)}}
+:root[data-theme="dark"]{--bg:#0e1420;--card:#171f2f;--ink:#e8edf7;--mute:#92a0ba;--line:#26314a;--brand:#5b8ff0;--brand-ink:#0e1420;--danger:#ff7b6b;--t1:#5b9bff;--t2:#a58bff;--t3:#3dd598;--t4:#ffb84a;--t5:#9aa8bf;--shadow:0 1px 2px rgba(0,0,0,.3)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.brand h1{margin:0;font-size:20px;letter-spacing:-.01em}.brand p{margin:2px 0 0;color:var(--mute);font-size:13px}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--mute);margin-left:8px;vertical-align:middle}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--brand)}.btn:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.danger{color:var(--danger)}.btn[disabled]{opacity:.5;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:none;padding:8px 14px;cursor:pointer;font-weight:600;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.calhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);gap:8px}
+.calhead h2{margin:0;font-size:17px;text-transform:capitalize}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.dow div{padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.cell{min-height:104px;border-top:1px solid var(--line);border-left:1px solid var(--line);padding:6px;cursor:pointer;background:none;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cell:nth-child(7n+1){border-left:0}.cell.out{opacity:.45}
+.cell:hover{background:color-mix(in srgb,var(--brand) 6%,transparent)}
+.cell.sel{background:color-mix(in srgb,var(--brand) 12%,transparent)}
+.num{font-size:12px;font-weight:700;width:24px;height:24px;display:grid;place-items:center;border-radius:50%}
+.today .num{background:var(--brand);color:var(--brand-ink)}
+.chip{display:block;width:100%;font-size:11px;line-height:1.3;padding:2px 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border-left:3px solid var(--c)}
+.more{font-size:11px;color:var(--mute);padding-left:4px}
+.week .cell{min-height:340px}.week .chip{white-space:normal;padding:6px}.week .chip b{display:block}
+.side{padding:16px;position:sticky;top:12px}.side h3{margin:0 0 2px;font-size:15px;text-transform:capitalize}
+.sub{color:var(--mute);font-size:13px;margin-bottom:12px}
+.ev{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.ev .t{font-weight:700}.ev .m{font-size:13px;color:var(--mute)}.ev .k{font-size:11px;font-weight:700;color:var(--c);text-transform:uppercase;letter-spacing:.04em}
+.ev .acts{display:flex;gap:6px;margin-top:8px}.ev .btn{padding:4px 10px;font-size:13px}
+.empty{color:var(--mute);font-size:14px;padding:12px 0}
+dialog{border:0;border-radius:18px;padding:0;width:min(520px,calc(100% - 24px));background:var(--card);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,15,30,.55)}
+.mh{padding:18px 20px 0}.mh h3{margin:0;font-size:18px}.mb{padding:14px 20px;display:grid;gap:12px}.mf{padding:0 20px 18px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+label{display:grid;gap:4px;font-size:13px;font-weight:600}
+input,select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;width:100%}
+input[aria-invalid="true"]{border-color:var(--danger)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.types{display:flex;flex-wrap:wrap;gap:6px}
+.types button{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600}
+.types button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.err{color:var(--danger);font-size:13px;min-height:1em}
+.banner{margin-bottom:14px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--t4) 15%,transparent);font-size:13px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.side{position:static}.cell{min-height:64px}.chip{display:none}.cell .dot{display:block}.week .grid{grid-template-columns:1fr}.week .dow{display:none}.week .cell{min-height:0;border-left:0}.week .chip{display:block}}
+.dots{display:flex;gap:3px;flex-wrap:wrap}.dot{width:7px;height:7px;border-radius:50%;background:var(--c);display:none}
+@media (max-width:900px){.dots .dot{display:block}}
+[hidden]{display:none!important}
+textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font:inherit;color:inherit;resize:vertical}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lbox{width:min(400px,100%);padding:28px;display:grid;gap:14px}.lbox h1{margin:0;font-size:22px}.lbox .sub{margin:0}
+.foot{text-align:center;color:var(--mute);font-size:12.5px;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app" hidden>
+  <header class="top">
+    <div class="brand"><h1>Agenda da Presidência <span class="badge" id="role">…</span></h1><p>Instituto Nacional do Seguro Social · compromissos e eventos</p></div>
+    <div class="bar">
+      <div class="seg" role="group" aria-label="Visualização"><button id="vm" aria-pressed="true">Mês</button><button id="vw" aria-pressed="false">Semana</button></div>
+      <button class="btn" id="wa">Enviar no WhatsApp</button>
+      <button class="btn primary" id="add" hidden>+ Novo evento</button>
+      <button class="btn" id="out">Sair</button>
+    </div>
+  </header>
+  <div id="banner"></div>
+  <div class="layout">
+    <section class="card" id="cal" aria-label="Calendário">
+      <div class="calhead">
+        <button class="btn" id="prev" aria-label="Anterior">‹</button>
+        <h2 id="title"></h2>
+        <div class="bar"><button class="btn" id="today">Hoje</button><button class="btn" id="next" aria-label="Próximo">›</button></div>
+      </div>
+      <div class="dow" id="dow"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+    <aside class="card side" aria-live="polite"><h3 id="dtitle"></h3><div class="sub" id="dsub"></div><div id="dlist"></div></aside>
+  </div>
+  <footer class="foot">Desenvolvido por Pedro Gustavo F. A. / Ascom</footer>
+</div>
+
+<main id="login" class="login" hidden>
+  <form class="card lbox" id="lf" novalidate>
+    <div><h1>Agenda da Presidência</h1><p class="sub">INSS · acesso restrito</p></div>
+    <label>E-mail<input id="le" type="email" autocomplete="username"></label>
+    <label>Senha<input id="lp" type="password" autocomplete="current-password"></label>
+    <div class="err" id="lerr" role="alert"></div>
+    <button class="btn primary" id="lb" type="submit">Entrar</button>
+    <div class="foot" style="margin:6px 0 0">Desenvolvido por Pedro Gustavo F. A. / Ascom</div>
+  </form>
+</main>
+
+<dialog id="wdlg">
+  <div class="mh"><h3>Enviar agenda pelo WhatsApp</h3></div>
+  <div class="mb">
+    <div class="seg" role="group" aria-label="Período"><button type="button" id="wd" aria-pressed="true">Agenda do dia</button><button type="button" id="ww" aria-pressed="false">Agenda da semana</button></div>
+    <label>Mensagem (pode editar)<textarea id="wmsg" rows="10"></textarea></label>
+    <label>WhatsApp do destinatário (opcional)<input id="wph" inputmode="tel" placeholder="(61) 99999-9999"></label>
+    <div class="err" id="werr" role="alert"></div>
+  </div>
+  <div class="mf"><button type="button" class="btn" id="wcl">Fechar</button><button type="button" class="btn" id="wcp">Copiar</button><button type="button" class="btn primary" id="wgo">Abrir WhatsApp</button></div>
+</dialog>
+
+<dialog id="dlg">
+  <form id="f" novalidate method="dialog">
+    <div class="mh"><h3 id="mt">Novo evento</h3></div>
+    <div class="mb">
+      <div><div class="sub" style="margin:0 0 6px;font-weight:600">Tipo de evento</div><div class="types" id="types"></div></div>
+      <label>Nome do evento<input id="fn" maxlength="120" autocomplete="off"></label>
+      <div class="row"><label>Data<input id="fd" type="date"></label><label>Hora<input id="fh" type="time"></label></div>
+      <label>Local / Cidade<input id="fc" maxlength="80" autocomplete="off"></label>
+      <label>Endereço<input id="fa" maxlength="200" autocomplete="off"></label>
+      <div class="err" id="ferr" role="alert"></div>
+    </div>
+    <div class="mf"><button type="button" class="btn" id="cancel">Cancelar</button><button type="submit" class="btn primary" id="save">Salvar</button></div>
+  </form>
+</dialog>
+
+<script>window.AGENDA_CONFIG={url:"https://cvjzqhostfizirivigjz.supabase.co/rest/v1/",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2anpxaG9zdGZpemlyaXZpZ2p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTQ3MzEsImV4cCI6MjEwODA5MDczMX0.XkN3hx-ujAzkX8rD3HCLYPxyUOPHedwfA0W-kYDDyGQ"};</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+"use strict";
+var TYPES=[{k:"cap",n:"Capacitação - EAD",c:"var(--t1)"},{k:"rt",n:"Reunião Técnica",c:"var(--t2)"},{k:"mut",n:"Mutirão",c:"var(--t3)"},{k:"dc",n:"Evento - DC",c:"var(--t4)"},{k:"per",n:"Personalizado",c:"var(--t5)"}];
+var tmap={};TYPES.forEach(function(t){tmap[t.k]=t});
+var $=function(i){return document.getElementById(i)};
+var pad=function(n){return String(n).padStart(2,"0")};
+var iso=function(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+var parse=function(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])};
+var S={view:"month",cur:new Date(),sel:iso(new Date()),ev:[],canWrite:false,col:null,editing:null,type:"cap",delArm:null};
+S.cur=new Date(S.cur.getFullYear(),S.cur.getMonth(),S.cur.getDate());
+var fmtM=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"});
+var fmtD=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+var fmtS=new Intl.DateTimeFormat("pt-BR",{day:"numeric",month:"short"});
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function byDay(){var m={};S.ev.forEach(function(e){(m[e.date]=m[e.date]||[]).push(e)});for(var k in m)m[k].sort(function(a,b){return (a.time||"").localeCompare(b.time||"")});return m}
+function typeOf(e){return tmap[e.type]||tmap.per}
+
+function range(){
+  var c=S.cur,start;
+  if(S.view==="week"){start=new Date(c.getFullYear(),c.getMonth(),c.getDate()-c.getDay());return {start:start,n:7}}
+  var first=new Date(c.getFullYear(),c.getMonth(),1);start=new Date(first.getFullYear(),first.getMonth(),1-first.getDay());
+  var last=new Date(c.getFullYear(),c.getMonth()+1,0);var n=Math.ceil((first.getDay()+last.getDate())/7)*7;return {start:start,n:n}
+}
+function render(){
+  var r=range(),map=byDay(),g=$("grid"),todayS=iso(new Date());
+  g.textContent="";$("cal").classList.toggle("week",S.view==="week");
+  $("title").textContent=S.view==="month"?fmtM.format(S.cur):fmtS.format(r.start)+" – "+fmtS.format(new Date(r.start.getFullYear(),r.start.getMonth(),r.start.getDate()+6));
+  $("vm").setAttribute("aria-pressed",S.view==="month");$("vw").setAttribute("aria-pressed",S.view==="week");
+  for(var i=0;i<r.n;i++){
+    var d=new Date(r.start.getFullYear(),r.start.getMonth(),r.start.getDate()+i),s=iso(d),list=map[s]||[];
+    var b=el("button","cell"+(s===todayS?" today":"")+(s===S.sel?" sel":"")+(S.view==="month"&&d.getMonth()!==S.cur.getMonth()?" out":""));
+    b.type="button";b.setAttribute("aria-label",fmtD.format(d)+", "+list.length+" evento(s)");b.dataset.d=s;
+    b.appendChild(el("span","num",d.getDate()));
+    var max=S.view==="week"?99:3;
+    list.slice(0,max).forEach(function(e){var t=typeOf(e),c=el("span","chip");c.style.setProperty("--c",t.c);
+      if(S.view==="week"){c.appendChild(el("b",null,(e.time||"")+" "+e.title));c.appendChild(document.createTextNode(e.city||""))}else c.textContent=(e.time||"")+" "+e.title;b.appendChild(c)});
+    if(list.length>max)b.appendChild(el("span","more","+"+(list.length-max)+" mais"));
+    if(list.length){var ds=el("span","dots");list.slice(0,5).forEach(function(e){var x=el("i","dot");x.style.setProperty("--c",typeOf(e).c);ds.appendChild(x)});b.appendChild(ds)}
+    g.appendChild(b);
+  }
+  renderDay(map);
+}
+function renderDay(map){
+  var d=parse(S.sel),list=(map||byDay())[S.sel]||[],box=$("dlist");
+  $("dtitle").textContent=fmtD.format(d);$("dsub").textContent=list.length?list.length+" evento(s)":"Nenhum evento neste dia";box.textContent="";
+  if(!list.length)box.appendChild(el("div","empty",S.canWrite?"Use “Novo evento” para adicionar.":"Sem compromissos marcados."));
+  list.forEach(function(e){var t=typeOf(e),c=el("div","ev");c.style.setProperty("--c",t.c);
+    c.appendChild(el("div","k",t.n));c.appendChild(el("div","t",e.title));
+    c.appendChild(el("div","m","🕐 "+(e.time||"—")));c.appendChild(el("div","m","📍 "+(e.city||"—")));if(e.address)c.appendChild(el("div","m",e.address));
+    if(S.canWrite){var a=el("div","acts"),be=el("button","btn","Editar"),bd=el("button","btn danger",S.delArm===e.id?"Confirmar exclusão":"Excluir");
+      be.type=bd.type="button";be.onclick=function(){openForm(e)};
+      bd.onclick=function(){if(S.delArm!==e.id){S.delArm=e.id;renderDay();setTimeout(function(){if(S.delArm===e.id){S.delArm=null;renderDay()}},4000);return}
+        S.delArm=null;bd.disabled=true;S.col.doc(e.id).delete().catch(function(x){alert("Não foi possível excluir: "+(x&&x.message||x));renderDay()})};
+      a.appendChild(be);a.appendChild(bd);c.appendChild(a)}
+    box.appendChild(c)});
+}
+function go(delta){var c=S.cur;S.cur=S.view==="week"?new Date(c.getFullYear(),c.getMonth(),c.getDate()+7*delta):new Date(c.getFullYear(),c.getMonth()+delta,1);render()}
+$("prev").onclick=function(){go(-1)};$("next").onclick=function(){go(1)};
+$("today").onclick=function(){var n=new Date();S.cur=new Date(n.getFullYear(),n.getMonth(),n.getDate());S.sel=iso(S.cur);render()};
+$("vm").onclick=function(){S.view="month";render()};$("vw").onclick=function(){S.view="week";S.cur=parse(S.sel);render()};
+$("grid").onclick=function(e){var b=e.target.closest(".cell");if(!b)return;S.sel=b.dataset.d;S.delArm=null;render()};
+
+/* Formulário */
+function drawTypes(){var box=$("types");box.textContent="";TYPES.forEach(function(t){var b=el("button",null,t.n);b.type="button";b.style.setProperty("--c",t.c);b.setAttribute("aria-pressed",S.type===t.k);
+  b.onclick=function(){S.type=t.k;drawTypes()};box.appendChild(b)})}
+function openForm(e){
+  if(!S.canWrite||!S.col)return;S.editing=e||null;S.type=e?e.type:"cap";
+  $("mt").textContent=e?"Editar evento":"Novo evento";
+  $("fn").value=e?e.title:"";$("fd").value=e?e.date:S.sel;$("fh").value=e?e.time:"";$("fc").value=e?e.city:"";$("fa").value=e?e.address:"";
+  $("ferr").textContent="";["fn","fd","fh","fc","fa"].forEach(function(i){$(i).removeAttribute("aria-invalid")});
+  drawTypes();$("save").disabled=false;$("dlg").showModal();$("fn").focus();
+}
+$("add").onclick=function(){openForm(null)};$("cancel").onclick=function(){$("dlg").close()};
+$("f").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var v={title:$("fn").value.trim(),date:$("fd").value,time:$("fh").value,city:$("fc").value.trim(),address:$("fa").value.trim()},bad=[];
+  var map={title:"fn",date:"fd",time:"fh",city:"fc",address:"fa"},lab={title:"Nome do evento",date:"Data",time:"Hora",city:"Local/Cidade",address:"Endereço"};
+  Object.keys(map).forEach(function(k){var ok=!!v[k];if(k==="date"&&ok){var d=parse(v.date);ok=!isNaN(d)&&iso(d)===v.date&&d.getFullYear()>=2000&&d.getFullYear()<=2100}
+    $(map[k]).setAttribute("aria-invalid",!ok);if(!ok)bad.push(lab[k])});
+  if(bad.length){$("ferr").textContent="Preencha corretamente: "+bad.join(", ")+".";return}
+  v.type=S.type;v.updatedAt=Date.now();$("save").disabled=true;
+  var p=S.editing?S.col.doc(S.editing.id).set(v):S.col.add(v);
+  p.then(function(){S.sel=v.date;S.cur=parse(v.date);$("dlg").close();render()})
+   .catch(function(x){$("save").disabled=false;$("ferr").textContent="Não foi possível salvar"+(x&&(x.code==="42501"||x.code==="forbidden")?": você não tem permissão de edição.":". Tente novamente.")});
+});
+
+/* Auth + dados (Supabase) */
+var CFG=window.AGENDA_CONFIG||{},sb=null,ch=null;
+["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].forEach(function(d){$("dow").appendChild(el("div",null,d))});
+function banner(t){var b=$("banner");b.textContent="";if(t)b.appendChild(el("div","banner",t))}
+function run(p,need){return p.then(function(r){if(r.error)throw r.error;if(need&&(!r.data||!r.data.length)){var e=new Error("Sem permissão");e.code="42501";throw e}return r})}
+function row(v){return {type:v.type,title:v.title,date:v.date,time:v.time,city:v.city,address:v.address}}
+S.col={add:function(v){return run(sb.from("events").insert(row(v)).select(),1).then(load)},
+  doc:function(id){return {set:function(v){return run(sb.from("events").update(row(v)).eq("id",id).select(),1).then(load)},
+    delete:function(){return run(sb.from("events").delete().eq("id",id).select(),1).then(load)}}}};
+function load(){return sb.from("events").select("*").order("date").order("time").then(function(r){
+  if(r.error){banner("Não foi possível carregar os eventos. Recarregue a página.");return}
+  banner("");S.ev=r.data.map(function(x){return {id:x.id,type:x.type,title:x.title,date:x.date,time:(x.time||"").slice(0,5),city:x.city,address:x.address}});render()})}
+function unsub(){if(ch&&sb){sb.removeChannel(ch);ch=null}}
+function subscribe(){unsub();ch=sb.channel("agenda-events").on("postgres_changes",{event:"*",schema:"public",table:"events"},function(){load()}).subscribe()}
+function showLogin(msg){unsub();S.ev=[];$("app").hidden=true;$("login").hidden=false;$("lb").disabled=!sb;$("lerr").textContent=msg||S.msg||"";S.msg=""}
+function setRole(){$("role").textContent={admin:"Administrador",editor:"Edição",viewer:"Somente leitura"}[S.role]||"";$("add").hidden=!S.canWrite;renderDay()}
+async function enter(user){
+  try{
+    var r=await sb.from("profiles").select("role").eq("id",user.id).maybeSingle();
+    var role=r.data&&r.data.role;
+    if(r.error||!role){S.msg="Seu usuário ainda não foi liberado. Fale com o administrador.";S.uid=null;await sb.auth.signOut();return}
+    S.role=role;S.canWrite=role==="admin"||role==="editor";$("lp").value="";
+    $("login").hidden=true;$("app").hidden=false;setRole();await load();subscribe();
+  }catch(e){S.msg="Não foi possível validar seu acesso. Tente novamente.";S.uid=null;sb.auth.signOut()}
+}
+$("lf").addEventListener("submit",function(ev){
+  ev.preventDefault();var em=$("le").value.trim(),pw=$("lp").value;
+  if(!em||!pw){$("lerr").textContent="Informe e-mail e senha.";return}
+  $("lb").disabled=true;$("lerr").textContent="";
+  sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
+    if(r.error){$("lb").disabled=false;$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos."}
+  }).catch(function(){$("lb").disabled=false;$("lerr").textContent="Falha de conexão. Tente novamente."});
+});
+$("out").onclick=function(){sb.auth.signOut()};
+document.addEventListener("visibilitychange",function(){if(sb&&S.uid&&!document.hidden)load()});
+
+/* WhatsApp */
+var WD=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];S.wa="day";
+function cl(t){return String(t||"").replace(/[*_~`]/g,"")}
+function buildMsg(mode){
+  var map=byDay(),out=["*📅 AGENDA DA PRESIDÊNCIA – INSS*"],days=[],d0=parse(S.sel);
+  if(mode==="day")days=[S.sel];
+  else{for(var i=0;i<7;i++)days.push(iso(new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()-d0.getDay()+i)));out.push("Semana de "+fmtS.format(parse(days[0]))+" a "+fmtS.format(parse(days[6])))}
+  var any=false;
+  days.forEach(function(s){var l=map[s]||[];if(mode==="week"&&!l.length)return;any=true;var d=parse(s);
+    out.push("","*"+WD[d.getDay()]+", "+fmtS.format(d)+"*");if(!l.length)out.push("Sem compromissos.");
+    l.forEach(function(e){out.push("🕐 "+(e.time||"--:--")+" – *"+cl(e.title)+"*","     _"+typeOf(e).n+"_","     📍 "+cl(e.city)+(e.address?" – "+cl(e.address):""))})});
+  if(!any)out.push("","Nenhum compromisso no período.");
+  return out.join("\n")
+}
+function refreshWa(){$("wd").setAttribute("aria-pressed",S.wa==="day");$("ww").setAttribute("aria-pressed",S.wa==="week");$("wmsg").value=buildMsg(S.wa);$("werr").textContent=""}
+$("wa").onclick=function(){S.wa="day";refreshWa();$("wdlg").showModal()};
+$("wd").onclick=function(){S.wa="day";refreshWa()};$("ww").onclick=function(){S.wa="week";refreshWa()};
+$("wcl").onclick=function(){$("wdlg").close()};
+$("wcp").onclick=function(){var t=$("wmsg");var ok=function(){$("werr").textContent="Mensagem copiada."};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(ok).catch(function(){t.select();document.execCommand("copy");ok()});
+  else{t.select();document.execCommand("copy");ok()}};
+$("wgo").onclick=function(){
+  var msg=$("wmsg").value.trim(),ph=$("wph").value.replace(/\D/g,"");
+  if(!msg){$("werr").textContent="A mensagem está vazia.";return}
+  if(ph){if(/^\d{10,11}$/.test(ph))ph="55"+ph;if(!/^55\d{10,11}$/.test(ph)){$("werr").textContent="Número inválido. Use DDD + número.";return}}
+  window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(msg),"_blank","noopener");
+};
+
+/* Início */
+if(!window.supabase||!CFG.url||CFG.url.indexOf("COLE_")===0){showLogin("Sistema não configurado: informe a URL e a chave do Supabase no index.html.")}
+else{
+  sb=window.supabase.createClient(CFG.url,CFG.key);
+  sb.auth.onAuthStateChange(function(ev,session){setTimeout(function(){
+    if(!session){S.uid=null;showLogin();return}
+    if(ev==="TOKEN_REFRESHED"||ev==="USER_UPDATED"||S.uid===session.user.id)return;
+    S.uid=session.user.id;enter(session.user);
+  },0)});
+}
+render();
+})();
+</script>
+</body>
+</html>
