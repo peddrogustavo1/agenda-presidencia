@@ -291,8 +291,28 @@ $("wgo").onclick=function(){
 if(!window.supabase||!CFG.url||CFG.url.indexOf("COLE_")===0){showLogin("Sistema não configurado: informe a URL e a chave do Supabase no index.html.")}
 else{
   sb=window.supabase.createClient(CFG.url,CFG.key);
-  sb.auth.onAuthStateChange(function(ev,session){setTimeout(function(){
-    if(!session){S.uid=null;showLogin();return}
+sb.auth.onAuthStateChange(function(ev, session) {
+  if (ev === "INITIAL_SESSION") {
+    if (session) {
+      S.uid = session.user.id;
+      enter(session.user);
+    } else {
+      showLogin();
+    }
+    return;
+  }
+
+  if (!session) {
+    S.uid = null;
+    showLogin();
+    return;
+  }
+
+  if (ev === "SIGNED_IN" && S.uid !== session.user.id) {
+    S.uid = session.user.id;
+    enter(session.user);
+  }
+});    if(!session){S.uid=null;showLogin();return}
     if(ev==="TOKEN_REFRESHED"||ev==="USER_UPDATED"||S.uid===session.user.id)return;
     S.uid=session.user.id;enter(session.user);
   },0)});
