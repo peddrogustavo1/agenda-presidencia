@@ -103,6 +103,9 @@ input[aria-invalid="true"]{border-color:var(--danger)}
 textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font:inherit;color:inherit;resize:vertical}
 .login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .lbox{width:min(400px,100%);padding:28px;display:grid;gap:14px}.lbox h1{margin:0;font-size:22px}.lbox .sub{margin:0}
+.lbox .btn.loading{display:inline-flex;align-items:center;justify-content:center;gap:9px;opacity:.9;cursor:wait}
+.lbox .btn.loading::after{content:"";width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:login-spin .7s linear infinite}
+@keyframes login-spin{to{transform:rotate(360deg)}}
 .foot{text-align:center;color:var(--mute);font-size:12.5px;margin-top:28px}
 </style>
 </head>
@@ -273,7 +276,7 @@ function load(){return sb.from("events").select("*").order("date").order("time")
   banner("");S.ev=r.data.map(function(x){return {id:x.id,type:x.type,title:x.title,date:x.date,time:(x.time||"").slice(0,5),city:x.city,address:x.address}});render()})}
 function unsub(){if(ch&&sb){sb.removeChannel(ch);ch=null}}
 function subscribe(){unsub();ch=sb.channel("agenda-events").on("postgres_changes",{event:"*",schema:"public",table:"events"},function(){load()}).subscribe()}
-function showLogin(msg){unsub();S.ev=[];$("app").hidden=true;$("login").hidden=false;$("lb").disabled=!sb;$("lerr").textContent=msg||S.msg||"";S.msg=""}
+function showLogin(msg){unsub();S.ev=[];$("app").hidden=true;$("login").hidden=false;$("lb").disabled=!sb;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent=msg||S.msg||"";S.msg=""}
 function setRole(){$("role").textContent={admin:"Administrador",editor:"Edição",viewer:"Somente leitura"}[S.role]||"";$("add").hidden=!S.canWrite;renderDay()}
 async function enter(user){
   try{
@@ -287,12 +290,23 @@ async function enter(user){
 $("lf").addEventListener("submit",function(ev){
   ev.preventDefault();var em=$("le").value.trim(),pw=$("lp").value;
   if(!em||!pw){$("lerr").textContent="Informe e-mail e senha.";return}
-  $("lb").disabled=true;$("lerr").textContent="";
+  $("lb").disabled=true;$("lb").classList.add("loading");$("lb").setAttribute("aria-busy","true");$("lb").textContent="Entrando...";$("lerr").textContent="";
   sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
-    if(r.error){$("lb").disabled=false;$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos."}
-  }).catch(function(){$("lb").disabled=false;$("lerr").textContent="Falha de conexão. Tente novamente."});
+    if(r.error){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos."}
+  }).catch(function(){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="Falha de conexão. Tente novamente."});
 });
-$("out").onclick=function(){sb.auth.signOut()};
+$("out").onclick=async function(){
+  var b=$("out");b.disabled=true;
+  try{
+    var r=await sb.auth.signOut({scope:"local"});
+    if(r.error)throw r.error;
+    S.uid=null;S.role=null;S.canWrite=false;
+    showLogin("Sessão encerrada.");
+  }catch(e){
+    b.disabled=false;
+    banner("Não foi possível sair. Verifique sua conexão e tente novamente.");
+  }
+};
 document.addEventListener("visibilitychange",function(){if(sb&&S.uid&&!document.hidden)load()});
 
 /* WhatsApp */
@@ -355,3 +369,5 @@ render();
 </script>
 </body>
 </html>
+
+
