@@ -282,7 +282,7 @@ var CFG=window.AGENDA_CONFIG||{},sb=null,ch=null;
 ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].forEach(function(d){$("dow").appendChild(el("div",null,d))});
 function banner(t){var b=$("banner");b.textContent="";if(t)b.appendChild(el("div","banner",t))}
 function run(p,need){return p.then(function(r){if(r.error)throw r.error;if(need&&(!r.data||!r.data.length)){var e=new Error("Sem permissão");e.code="42501";throw e}return r})}
-function row(v){return {type:v.type,title:v.title,description:v.description,date:v.date,date_end:v.date_end,time:v.time,time_end:v.time_end,authorities:v.authorities,city:v.city,address:v.address}}
+function row(v){return {type:v.type,title:v.title,description:v.description,date:v.date,date_end:v.date_end||null,time:v.time||null,time_end:v.time_end||null,authorities:v.authorities,city:v.city,address:v.address}}
 S.col={add:function(v){return run(sb.from("events").insert(row(v)).select(),1).then(load)},
   doc:function(id){return {set:function(v){return run(sb.from("events").update(row(v)).eq("id",id).select(),1).then(load)},
     delete:function(){return run(sb.from("events").delete().eq("id",id).select(),1).then(load)}}}};
@@ -382,13 +382,4 @@ sb.auth.onAuthStateChange(function(ev, session) {
 render();
 })();
 </script>
-</body>
-</html>
-
-
-
-
-
-
-
-
+</body
