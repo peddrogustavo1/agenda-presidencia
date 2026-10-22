@@ -261,7 +261,12 @@ $("f").addEventListener("submit",function(ev){
   if(!S.type){$("ferr").textContent="Selecione a categoria do evento.";return}v.updatedAt=Date.now();$("save").disabled=true;
   var p=S.editing?S.col.doc(S.editing.id).set(v):S.col.add(v);
   p.then(function(){S.sel=v.date;S.cur=parse(v.date);$("dlg").close();render()})
-   .catch(function(x){$("save").disabled=false;$("ferr").textContent="Não foi possível salvar"+(x&&(x.code==="42501"||x.code==="forbidden")?": você não tem permissão de edição.":". Tente novamente.")});
+.catch(function(x){
+     console.error("Erro ao salvar evento:",x);
+     $("save").disabled=false;
+     var info=x?[x.code,x.message,x.details,x.hint].filter(Boolean).join(" | "):"Erro sem detalhes retornados.";
+     $("ferr").textContent="Não foi possível salvar. "+info;
+   });
 });
 
 /* Auth + dados (Supabase) */
@@ -371,6 +376,7 @@ render();
 </script>
 </body>
 </html>
+
 
 
 
