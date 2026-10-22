@@ -168,6 +168,8 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
       <div><div class="sub" style="margin:0 0 6px;font-weight:600">Calendário do evento</div><div class="types" id="types"></div></div>
       <label>Nome do evento<input id="fn" maxlength="120" autocomplete="off"></label>
       <label>Descrição<textarea id="fdesc" maxlength="2000" rows="3"></textarea></label>
+      <label>Área<input id="farea" maxlength="120" autocomplete="off"></label>
+      <label>Responsável<input id="fresponsible" maxlength="120" autocomplete="off"></label>
       <div class="row"><label>Data inicial<input id="fd" type="date" required></label><label>Data final (opcional)<input id="fde" type="date"></label></div>
       <div class="row"><label>Horário inicial<input id="fh" type="time"></label><label>Horário final (opcional)<input id="fhe" type="time"></label></div>
       <label>Autoridades confirmadas<textarea id="fauth" maxlength="2000" rows="2"></textarea></label>
@@ -233,7 +235,7 @@ function renderDay(map){
     c.appendChild(el("div","k",t.n));c.appendChild(el("div","t",e.title));
     c.appendChild(el("div","m","📅 "+fmtS.format(parse(e.date))+(e.date_end?" até "+fmtS.format(parse(e.date_end)):"")));
     c.appendChild(el("div","m","🕐 "+(e.time||"—")+(e.time_end?" até "+e.time_end:"")));
-    if(e.description)c.appendChild(el("div","m",e.description));if(e.authorities)c.appendChild(el("div","m","Autoridades confirmadas: "+e.authorities));
+    if(e.description)c.appendChild(el("div","m",e.description));if(e.area)c.appendChild(el("div","m","Área: "+e.area));if(e.responsible)c.appendChild(el("div","m","Responsável: "+e.responsible));if(e.authorities)c.appendChild(el("div","m","Autoridades confirmadas: "+e.authorities));
     c.appendChild(el("div","m","📍 "+(e.city||"—")));if(e.address)c.appendChild(el("div","m",e.address));
     if(S.canWrite){var a=el("div","acts"),be=el("button","btn","Editar"),bd=el("button","btn danger",S.delArm===e.id?"Confirmar exclusão":"Excluir");
       be.type=bd.type="button";be.onclick=function(){openForm(e)};
@@ -254,15 +256,15 @@ function drawTypes(){var box=$("types");box.textContent="";TYPES.forEach(functio
 function openForm(e){
   if(!S.canWrite||!S.col)return;S.editing=e||null;S.type=e?e.type:(S.cal==="all"?"":S.cal);
   $("mt").textContent=e?"Editar evento":"Novo evento";
-  $("fn").value=e?e.title:"";$("fdesc").value=e?e.description||"":"";$("fd").value=e?e.date:S.sel;$("fde").value=e?e.date_end||"":"";
+  $("fn").value=e?e.title:"";$("fdesc").value=e?e.description||"":"";$("farea").value=e?e.area||"":"";$("fresponsible").value=e?e.responsible||"":"";$("fd").value=e?e.date:S.sel;$("fde").value=e?e.date_end||"":"";
   $("fh").value=e?e.time:"";$("fhe").value=e?e.time_end||"":"";$("fauth").value=e?e.authorities||"":"";$("fc").value=e?e.city:"";$("faddr").value=e?e.address:"";
-  $("ferr").textContent="";["fn","fdesc","fd","fde","fh","fhe","fauth","fc","faddr"].forEach(function(i){$(i).removeAttribute("aria-invalid")});
+  $("ferr").textContent="";["fn","fdesc","farea","fresponsible","fd","fde","fh","fhe","fauth","fc","faddr"].forEach(function(i){$(i).removeAttribute("aria-invalid")});
   drawTypes();$("save").disabled=false;$("dlg").showModal();$("fn").focus();
 }
 $("add").onclick=function(){openForm(null)};$("cancel").onclick=function(){$("dlg").close()};
 $("f").addEventListener("submit",function(ev){
   ev.preventDefault();
-  var v={title:$("fn").value.trim(),description:$("fdesc").value.trim(),date:$("fd").value,date_end:$("fde").value||null,time:$("fh").value,time_end:$("fhe").value||null,authorities:$("fauth").value.trim(),city:$("fc").value.trim(),address:$("faddr").value.trim()},bad=[];
+  var v={title:$("fn").value.trim(),description:$("fdesc").value.trim(),area:$("farea").value.trim(),responsible:$("fresponsible").value.trim(),date:$("fd").value,date_end:$("fde").value||null,time:$("fh").value,time_end:$("fhe").value||null,authorities:$("fauth").value.trim(),city:$("fc").value.trim(),address:$("faddr").value.trim()},bad=[];
   var map={title:"fn",date:"fd"},lab={title:"Nome do evento",date:"Data inicial"};
   Object.keys(map).forEach(function(k){var ok=!!v[k];if(k==="date"&&ok){var d=parse(v.date);ok=!isNaN(d)&&iso(d)===v.date&&d.getFullYear()>=2000&&d.getFullYear()<=2100}$(map[k]).setAttribute("aria-invalid",!ok);if(!ok)bad.push(lab[k])});
   ["fde","fhe"].forEach(function(i){$(i).removeAttribute("aria-invalid")});
@@ -284,13 +286,13 @@ var CFG=window.AGENDA_CONFIG||{},sb=null,ch=null;
 ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].forEach(function(d){$("dow").appendChild(el("div",null,d))});
 function banner(t){var b=$("banner");b.textContent="";if(t)b.appendChild(el("div","banner",t))}
 function run(p,need){return p.then(function(r){if(r.error)throw r.error;if(need&&(!r.data||!r.data.length)){var e=new Error("Sem permissão");e.code="42501";throw e}return r})}
-function row(v){return {type:v.type,title:v.title,description:v.description||null,date:v.date,date_end:v.date_end||null,time:v.time||null,time_end:v.time_end||null,authorities:v.authorities||null,city:v.city||null,address:v.address||null}}
+function row(v){return {type:v.type,title:v.title,description:v.description||null,area:v.area||null,responsible:v.responsible||null,date:v.date,date_end:v.date_end||null,time:v.time||null,time_end:v.time_end||null,authorities:v.authorities||null,city:v.city||null,address:v.address||null}}
 S.col={add:function(v){return run(sb.from("events").insert(row(v)).select(),1).then(load)},
   doc:function(id){return {set:function(v){return run(sb.from("events").update(row(v)).eq("id",id).select(),1).then(load)},
     delete:function(){return run(sb.from("events").delete().eq("id",id).select(),1).then(load)}}}};
 function load(){return sb.from("events").select("*").order("date").order("time").then(function(r){
   if(r.error){banner("Não foi possível carregar os eventos. Recarregue a página.");return}
-  banner("");S.ev=r.data.map(function(x){return {id:x.id,type:x.type,title:x.title,description:x.description||"",date:x.date,date_end:x.date_end||null,time:(x.time||"").slice(0,5),time_end:(x.time_end||"").slice(0,5),authorities:x.authorities||"",city:x.city,address:x.address}});render()})}
+  banner("");S.ev=r.data.map(function(x){return {id:x.id,type:x.type,title:x.title,description:x.description||"",area:x.area||"",responsible:x.responsible||"",date:x.date,date_end:x.date_end||null,time:(x.time||"").slice(0,5),time_end:(x.time_end||"").slice(0,5),authorities:x.authorities||"",city:x.city,address:x.address}});render()})}
 function unsub(){if(ch&&sb){sb.removeChannel(ch);ch=null}}
 function subscribe(){unsub();ch=sb.channel("agenda-events").on("postgres_changes",{event:"*",schema:"public",table:"events"},function(){load()}).subscribe()}
 function showLogin(msg){unsub();S.ev=[];S.cal="all";S.delArm=null;$("app").hidden=true;$("login").hidden=false;$("lb").disabled=!sb;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent=msg||S.msg||"";S.msg=""}
@@ -336,7 +338,7 @@ function buildMsg(mode){
   var any=false;
   days.forEach(function(s){var l=map[s]||[];if(mode==="week"&&!l.length)return;any=true;var d=parse(s);
     out.push("","*"+WD[d.getDay()]+", "+fmtS.format(d)+"*");if(!l.length)out.push("Sem compromissos.");
-    l.forEach(function(e){out.push("🕐 "+(e.time||"--:--")+(e.time_end?" até "+e.time_end:"")+" – *"+cl(e.title)+"*","     _"+typeOf(e).n+"_");if(e.description)out.push("     "+cl(e.description));if(e.authorities)out.push("     Autoridades confirmadas: "+cl(e.authorities));out.push("     📍 "+cl(e.city)+(e.address?" – "+cl(e.address):""))})});
+    l.forEach(function(e){out.push("🕐 "+(e.time||"--:--")+(e.time_end?" até "+e.time_end:"")+" – *"+cl(e.title)+"*","     _"+typeOf(e).n+"_");if(e.description)out.push("     "+cl(e.description));if(e.area)out.push("     Área: "+cl(e.area));if(e.responsible)out.push("     Responsável: "+cl(e.responsible));if(e.authorities)out.push("     Autoridades confirmadas: "+cl(e.authorities));out.push("     📍 "+cl(e.city)+(e.address?" – "+cl(e.address):""))})});
   if(!any)out.push("","Nenhum compromisso no período.");
   return out.join("\n")
 }
