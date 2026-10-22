@@ -301,18 +301,29 @@ async function enter(user){
   try{
     var r=await sb.from("profiles").select("role").eq("id",user.id).maybeSingle();
     var role=r.data&&r.data.role;
-    if(r.error||!role){S.msg="Seu usuário ainda não foi liberado. Fale com o administrador.";S.uid=null;await sb.auth.signOut();return}
+    if(r.error||!role){S.msg="Seu usuário ainda não foi liberado. Fale com o administrador.";S.uid=null;await sb.auth.signOut();showLogin();return}
     S.role=role;S.canWrite=role==="admin"||role==="editor";$("lp").value="";
     $("login").hidden=true;$("app").hidden=false;setRole();await load();subscribe();
-  }catch(e){S.msg="Não foi possível validar seu acesso. Tente novamente.";S.uid=null;sb.auth.signOut()}
+  }catch(e){
+    console.error("Falha ao validar perfil:",e);S.uid=null;S.msg="Não foi possível validar seu acesso. Tente novamente.";
+    try{await sb.auth.signOut()}catch(_){}showLogin(S.msg);
+  }
+}
+function acceptUser(user){
+  if(!user||S.uid===user.id)return;
+  S.uid=user.id;
+  // Executa consultas de perfil fora do callback protegido de autenticação do Supabase.
+  setTimeout(function(){if(S.uid===user.id)enter(user)},0);
 }
 $("lf").addEventListener("submit",function(ev){
   ev.preventDefault();var em=$("le").value.trim(),pw=$("lp").value;
   if(!em||!pw){$("lerr").textContent="Informe e-mail e senha.";return}
   $("lb").disabled=true;$("lb").classList.add("loading");$("lb").setAttribute("aria-busy","true");$("lb").textContent="Entrando...";$("lerr").textContent="";
   sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
-    if(r.error){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos."}
-  }).catch(function(){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="Falha de conexão. Tente novamente."});
+    if(r.error){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos.";return}
+    var user=r.data&&r.data.user;if(!user){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="O Supabase não retornou o usuário autenticado. Tente novamente.";return}
+    acceptUser(user);
+  }).catch(function(e){console.error("Falha no login:",e);$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="Falha de conexão. Tente novamente."});
 });
 $("out").onclick=async function(){
   var b=$("out");b.disabled=true;
@@ -353,25 +364,4 @@ $("wgo").onclick=function(){
   var msg=$("wmsg").value.trim(),ph=$("wph").value.replace(/\D/g,"");
   if(!msg){$("werr").textContent="A mensagem está vazia.";return}
   if(ph){if(/^\d{10,11}$/.test(ph))ph="55"+ph;if(!/^55\d{10,11}$/.test(ph)){$("werr").textContent="Número inválido. Use DDD + número.";return}}
-  window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(msg),"_blank","noopener");
-};
-
-/* Início */
-if(!window.supabase||!CFG.url||CFG.url.indexOf("COLE_")===0){showLogin("Sistema não configurado: informe a URL e a chave do Supabase no index.html.")}
-else{
-  try {
-    sb=window.supabase.createClient(CFG.url,CFG.key);
-    // Exibe o login imediatamente; não depende do evento assíncrono INITIAL_SESSION para mostrar a tela.
-    showLogin();
-    sb.auth.onAuthStateChange(function(ev, session) {
-      if (ev === "INITIAL_SESSION") {
-        if (session) {
-          S.uid = session.user.id;
-          enter(session.user);
-        } else {
-          showLogin();
-        }
-        return;
-      }
-      if (!session) {
-     
+  window.open("https://wa.me/"+ph+"?text="+encodeURICompon
