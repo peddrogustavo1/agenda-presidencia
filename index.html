@@ -120,6 +120,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
       <button class="btn" id="out">Sair</button>
     </div>
   </header>
+  <div id="banner"></div>
   <nav class="calendar-picker" aria-label="Selecionar calendário"><strong>Calendário para visualizar</strong><div class="calnav" id="calnav" role="group" aria-label="Calendários"></div></nav>
   <div class="layout">
     <section class="card" id="cal" aria-label="Calendário">
@@ -194,6 +195,7 @@ function byDay(){var m={};S.ev.forEach(function(e){if(S.cal!=="all"&&e.type!==S.
 function typeOf(e){return tmap[e.type]||tmap.per}
 
 function drawCalendarPicker(){var box=$("calnav");box.textContent="";[{k:"all",n:"Todos"}].concat(TYPES).forEach(function(t){var b=el("button",null,t.n);b.type="button";b.setAttribute("aria-pressed",S.cal===t.k);b.onclick=function(){S.cal=t.k;S.delArm=null;drawCalendarPicker();render()};box.appendChild(b)})}
+function range(){
   var c=S.cur,start;
   if(S.view==="week"){start=new Date(c.getFullYear(),c.getMonth(),c.getDate()-c.getDay());return {start:start,n:7}}
   var first=new Date(c.getFullYear(),c.getMonth(),1);start=new Date(first.getFullYear(),first.getMonth(),1-first.getDay());
@@ -369,6 +371,8 @@ render();
 </script>
 </body>
 </html>
+
+
 
 
 
