@@ -258,7 +258,7 @@ $("f").addEventListener("submit",function(ev){
   Object.keys(map).forEach(function(k){var ok=!!v[k];if(k==="date"&&ok){var d=parse(v.date);ok=!isNaN(d)&&iso(d)===v.date&&d.getFullYear()>=2000&&d.getFullYear()<=2100}
     $(map[k]).setAttribute("aria-invalid",!ok);if(!ok)bad.push(lab[k])});
   if(bad.length){$("ferr").textContent="Preencha corretamente: "+bad.join(", ")+".";return}
-  if(!S.type){$("ferr").textContent="Selecione a categoria do evento.";return}v.updatedAt=Date.now();$("save").disabled=true;
+  if(!S.type){$("ferr").textContent="Selecione a categoria do evento.";return}v.type=S.type;v.updatedAt=Date.now();$("save").disabled=true;
   var p=S.editing?S.col.doc(S.editing.id).set(v):S.col.add(v);
   p.then(function(){S.sel=v.date;S.cur=parse(v.date);$("dlg").close();render()})
 .catch(function(x){
@@ -376,6 +376,7 @@ render();
 </script>
 </body>
 </html>
+
 
 
 
