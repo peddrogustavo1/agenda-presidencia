@@ -59,7 +59,7 @@ input[aria-invalid="true"]{border-color:var(--danger)}
 .types button{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600}
 .types button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
 .err{color:var(--danger);font-size:13px;min-height:1em}
-.banner{margin-bottom:14px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--t4) 15%,transparent);font-size:13px}
+.calendar-picker{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px}.calendar-picker>strong{font-size:13px}.calnav{display:flex;flex-wrap:wrap;gap:6px}.calnav button{border:1px solid var(--line);border-radius:999px;background:var(--bg);padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px}.calnav button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}.calnav button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.calnav button:disabled{opacity:.5;cursor:default}
 @media (max-width:900px){.layout{grid-template-columns:1fr}.side{position:static}.cell{min-height:64px}.chip{display:none}.cell .dot{display:block}.week .grid{grid-template-columns:1fr}.week .dow{display:none}.week .cell{min-height:0;border-left:0}.week .chip{display:block}}
 .dots{display:flex;gap:3px;flex-wrap:wrap}.dot{width:7px;height:7px;border-radius:50%;background:var(--c);display:none}
 @media (max-width:900px){.dots .dot{display:block}}
@@ -72,7 +72,7 @@ input[aria-invalid="true"]{border-color:var(--danger)}
   .bar{gap:6px}
   header.top>.bar{width:100%;justify-content:flex-start}
   .btn,.seg button{padding:7px 10px;font-size:13px}
-  .layout{gap:12px}
+.calendar-picker{align-items:flex-start;padding:10px;gap:8px}.calendar-picker>strong{width:100%}.calnav{width:100%}.calnav button{flex:1 1 auto;padding:7px 9px;font-size:12px}
   .card{min-width:0}
   .calhead{padding:10px;gap:5px}
   .calhead h2{font-size:15px;text-align:center;min-width:0}
@@ -120,7 +120,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
       <button class="btn" id="out">Sair</button>
     </div>
   </header>
-  <div id="banner"></div>
+  <nav class="calendar-picker" aria-label="Selecionar calendário"><strong>Calendário para visualizar</strong><div class="calnav" id="calnav" role="group" aria-label="Calendários"></div></nav>
   <div class="layout">
     <section class="card" id="cal" aria-label="Calendário">
       <div class="calhead">
@@ -162,7 +162,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
   <form id="f" novalidate method="dialog">
     <div class="mh"><h3 id="mt">Novo evento</h3></div>
     <div class="mb">
-      <div><div class="sub" style="margin:0 0 6px;font-weight:600">Tipo de evento</div><div class="types" id="types"></div></div>
+      <div><div class="sub" style="margin:0 0 6px;font-weight:600">Calendário do evento</div><div class="types" id="types"></div></div>
       <label>Nome do evento<input id="fn" maxlength="120" autocomplete="off"></label>
       <div class="row"><label>Data<input id="fd" type="date"></label><label>Hora<input id="fh" type="time"></label></div>
       <label>Local / Cidade<input id="fc" maxlength="80" autocomplete="off"></label>
@@ -178,22 +178,22 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
 <script>
 (function(){
 "use strict";
-var TYPES=[{k:"cap",n:"Capacitação - EAD",c:"var(--t1)"},{k:"rt",n:"Reunião Técnica",c:"var(--t2)"},{k:"mut",n:"Mutirão",c:"var(--t3)"},{k:"dc",n:"Evento - DC",c:"var(--t4)"},{k:"per",n:"Personalizado",c:"var(--t5)"}];
+var TYPES=[{k:"cap",n:"Capacitação - EAD",c:"var(--t1)"},{k:"rt",n:"Reunião Técnica",c:"var(--t2)"},{k:"mut",n:"Mutirão",c:"var(--t3)"},{k:"dc",n:"Eventos Direção Central",c:"var(--t4)"},{k:"per",n:"Outros",c:"var(--t5)"}];
 var tmap={};TYPES.forEach(function(t){tmap[t.k]=t});
 var $=function(i){return document.getElementById(i)};
 var pad=function(n){return String(n).padStart(2,"0")};
 var iso=function(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 var parse=function(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])};
-var S={view:"month",cur:new Date(),sel:iso(new Date()),ev:[],canWrite:false,col:null,editing:null,type:"cap",delArm:null};
+var S={view:"month",cur:new Date(),sel:iso(new Date()),ev:[],canWrite:false,col:null,editing:null,type:"cap",delArm:null,cal:"all"};
 S.cur=new Date(S.cur.getFullYear(),S.cur.getMonth(),S.cur.getDate());
 var fmtM=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"});
 var fmtD=new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"numeric",month:"long"});
 var fmtS=new Intl.DateTimeFormat("pt-BR",{day:"numeric",month:"short"});
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-function byDay(){var m={};S.ev.forEach(function(e){(m[e.date]=m[e.date]||[]).push(e)});for(var k in m)m[k].sort(function(a,b){return (a.time||"").localeCompare(b.time||"")});return m}
+function byDay(){var m={};S.ev.forEach(function(e){if(S.cal!=="all"&&e.type!==S.cal)return;(m[e.date]=m[e.date]||[]).push(e)});for(var k in m)m[k].sort(function(a,b){return (a.time||"").localeCompare(b.time||"")});return m}
 function typeOf(e){return tmap[e.type]||tmap.per}
 
-function range(){
+function drawCalendarPicker(){var box=$("calnav");box.textContent="";[{k:"all",n:"Todos"}].concat(TYPES).forEach(function(t){var b=el("button",null,t.n);b.type="button";b.setAttribute("aria-pressed",S.cal===t.k);b.onclick=function(){S.cal=t.k;S.delArm=null;drawCalendarPicker();render()};box.appendChild(b)})}
   var c=S.cur,start;
   if(S.view==="week"){start=new Date(c.getFullYear(),c.getMonth(),c.getDate()-c.getDay());return {start:start,n:7}}
   var first=new Date(c.getFullYear(),c.getMonth(),1);start=new Date(first.getFullYear(),first.getMonth(),1-first.getDay());
@@ -239,10 +239,10 @@ $("vm").onclick=function(){S.view="month";render()};$("vw").onclick=function(){S
 $("grid").onclick=function(e){var b=e.target.closest(".cell");if(!b)return;S.sel=b.dataset.d;S.delArm=null;render()};
 
 /* Formulário */
-function drawTypes(){var box=$("types");box.textContent="";TYPES.forEach(function(t){var b=el("button",null,t.n);b.type="button";b.style.setProperty("--c",t.c);b.setAttribute("aria-pressed",S.type===t.k);
+function drawTypes(){var box=$("types");box.textContent="";TYPES.forEach(function(t){var b=el("button",null,t.n);b.type="button";b.style.setProperty("--c",t.c);b.setAttribute("aria-pressed",S.type===t.k);b.disabled=!!S.editing||S.cal!=="all";
   b.onclick=function(){S.type=t.k;drawTypes()};box.appendChild(b)})}
 function openForm(e){
-  if(!S.canWrite||!S.col)return;S.editing=e||null;S.type=e?e.type:"cap";
+  if(!S.canWrite||!S.col)return;S.editing=e||null;S.type=e?e.type:(S.cal==="all"?"":S.cal);
   $("mt").textContent=e?"Editar evento":"Novo evento";
   $("fn").value=e?e.title:"";$("fd").value=e?e.date:S.sel;$("fh").value=e?e.time:"";$("fc").value=e?e.city:"";$("fa").value=e?e.address:"";
   $("ferr").textContent="";["fn","fd","fh","fc","fa"].forEach(function(i){$(i).removeAttribute("aria-invalid")});
@@ -256,7 +256,7 @@ $("f").addEventListener("submit",function(ev){
   Object.keys(map).forEach(function(k){var ok=!!v[k];if(k==="date"&&ok){var d=parse(v.date);ok=!isNaN(d)&&iso(d)===v.date&&d.getFullYear()>=2000&&d.getFullYear()<=2100}
     $(map[k]).setAttribute("aria-invalid",!ok);if(!ok)bad.push(lab[k])});
   if(bad.length){$("ferr").textContent="Preencha corretamente: "+bad.join(", ")+".";return}
-  v.type=S.type;v.updatedAt=Date.now();$("save").disabled=true;
+  if(!S.type){$("ferr").textContent="Selecione a categoria do evento.";return}v.updatedAt=Date.now();$("save").disabled=true;
   var p=S.editing?S.col.doc(S.editing.id).set(v):S.col.add(v);
   p.then(function(){S.sel=v.date;S.cur=parse(v.date);$("dlg").close();render()})
    .catch(function(x){$("save").disabled=false;$("ferr").textContent="Não foi possível salvar"+(x&&(x.code==="42501"||x.code==="forbidden")?": você não tem permissão de edição.":". Tente novamente.")});
@@ -276,8 +276,8 @@ function load(){return sb.from("events").select("*").order("date").order("time")
   banner("");S.ev=r.data.map(function(x){return {id:x.id,type:x.type,title:x.title,date:x.date,time:(x.time||"").slice(0,5),city:x.city,address:x.address}});render()})}
 function unsub(){if(ch&&sb){sb.removeChannel(ch);ch=null}}
 function subscribe(){unsub();ch=sb.channel("agenda-events").on("postgres_changes",{event:"*",schema:"public",table:"events"},function(){load()}).subscribe()}
-function showLogin(msg){unsub();S.ev=[];$("app").hidden=true;$("login").hidden=false;$("lb").disabled=!sb;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent=msg||S.msg||"";S.msg=""}
-function setRole(){$("role").textContent={admin:"Administrador",editor:"Edição",viewer:"Somente leitura"}[S.role]||"";$("add").hidden=!S.canWrite;renderDay()}
+function showLogin(msg){unsub();S.ev=[];S.cal="all";S.delArm=null;$("app").hidden=true;$("login").hidden=false;$("lb").disabled=!sb;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent=msg||S.msg||"";S.msg=""}
+function setRole(){$("role").textContent={admin:"Administrador",editor:"Edição",viewer:"Somente leitura"}[S.role]||"";$("add").hidden=!S.canWrite;drawCalendarPicker();renderDay()}
 async function enter(user){
   try{
     var r=await sb.from("profiles").select("role").eq("id",user.id).maybeSingle();
@@ -369,5 +369,7 @@ render();
 </script>
 </body>
 </html>
+
+
 
 
