@@ -357,22 +357,12 @@ $("wgo").onclick=function(){
 /* Início */
 if(!window.supabase||!CFG.url||CFG.url.indexOf("COLE_")===0){showLogin("Sistema não configurado: informe a URL e a chave do Supabase no index.html.")}
 else{
-  sb=window.supabase.createClient(CFG.url,CFG.key);
-sb.auth.onAuthStateChange(function(ev, session) {
-  if (ev === "INITIAL_SESSION") {
-    if (session) {
-      S.uid = session.user.id;
-      enter(session.user);
-    } else {
-      showLogin();
-    }
-    return;
-  }
-
-  if (!session) {
-    S.uid = null;
+  try {
+    sb=window.supabase.createClient(CFG.url,CFG.key);
+    // Exibe o login imediatamente; não depende do evento assíncrono INITIAL_SESSION para mostrar a tela.
     showLogin();
-    return;
-  }
-
- 
+    sb.auth.onAuthStateChange(function(ev, session) {
+      if (ev === "INITIAL_SESSION") {
+        if (session) {
+          S.uid = session.user.id;
+    
