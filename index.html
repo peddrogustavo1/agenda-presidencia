@@ -142,7 +142,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
 </div>
 
 <main id="login" class="login">
-  <form class="card lbox" id="lf" novalidate>
+  <form class="card lbox" id="lf" novalidate onsubmit="if(!window.agendaLoginReady){event.preventDefault();document.getElementById('lerr').textContent='O código de login não carregou. Recarregue a página; se persistir, publique novamente o arquivo completo.';}">
     <div><h1>Agenda da Presidência</h1><p class="sub">INSS · acesso restrito</p></div>
     <label>E-mail<input id="le" type="email" autocomplete="username"></label>
     <label>Senha<input id="lp" type="password" autocomplete="current-password"></label>
@@ -372,8 +372,91 @@ $("pform").addEventListener("submit",async function(ev){
 });
 $("lf").addEventListener("submit",function(ev){
   ev.preventDefault();var em=$("le").value.trim(),pw=$("lp").value;
+  if(!sb||!sb.auth){$("lerr").textContent="A conexão de login não foi iniciada. Recarregue a página e tente novamente.";return}
   if(!em||!pw){$("lerr").textContent="Informe e-mail e senha.";return}
   $("lb").disabled=true;$("lb").classList.add("loading");$("lb").setAttribute("aria-busy","true");$("lb").textContent="Entrando...";$("lerr").textContent="";
   sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
     if(r.error){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos.";return}
-    var user=r.data&&r.data.user
+    var user=r.data&&r.data.user;if(!user){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="O Supabase não retornou o usuário autenticado. Tente novamente.";return}
+    acceptUser(user);
+  }).catch(function(e){console.error("Falha no login:",e);$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="Falha de conexão. Tente novamente."});
+});
+window.agendaLoginReady=true;
+$("out").onclick=async function(){
+  var b=$("out");b.disabled=true;
+  try{
+    var r=await sb.auth.signOut({scope:"local"});
+    if(r.error)throw r.error;
+    S.uid=null;S.role=null;S.canWrite=false;
+    showLogin("Sessão encerrada.");
+  }catch(e){
+    b.disabled=false;
+    banner("Não foi possível sair. Verifique sua conexão e tente novamente.");
+  }
+};
+document.addEventListener("visibilitychange",function(){if(sb&&S.uid&&!document.hidden)load()});
+
+/* WhatsApp */
+var WD=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];S.wa="day";
+function cl(t){return String(t||"").replace(/[*_~`]/g,"")}
+function buildMsg(mode){
+  var map=byDay(),out=["*📅 AGENDA DA PRESIDÊNCIA – INSS*"],days=[],d0=parse(S.sel);
+  if(mode==="day")days=[S.sel];
+  else{for(var i=0;i<7;i++)days.push(iso(new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()-d0.getDay()+i)));out.push("Semana de "+fmtS.format(parse(days[0]))+" a "+fmtS.format(parse(days[6])))}
+  var any=false;
+  days.forEach(function(s){var l=map[s]||[];if(mode==="week"&&!l.length)return;any=true;var d=parse(s);
+    out.push("","*"+WD[d.getDay()]+", "+fmtS.format(d)+"*");if(!l.length)out.push("Sem compromissos.");
+    l.forEach(function(e){out.push("🕐 "+(e.time||"--:--")+(e.time_end?" até "+e.time_end:"")+" – *"+cl(e.title)+"*","     _"+typeOf(e).n+"_");if(e.description)out.push("     "+cl(e.description));if(e.area)out.push("     Área: "+cl(e.area));if(e.responsible)out.push("     Responsável: "+cl(e.responsible));if(e.authorities)out.push("     Autoridades confirmadas: "+cl(e.authorities));out.push("     📍 "+cl(e.city)+(e.address?" – "+cl(e.address):""))})});
+  if(!any)out.push("","Nenhum compromisso no período.");
+  return out.join("\n")
+}
+function refreshWa(){$("wd").setAttribute("aria-pressed",S.wa==="day");$("ww").setAttribute("aria-pressed",S.wa==="week");$("wmsg").value=buildMsg(S.wa);$("werr").textContent=""}
+$("wa").onclick=function(){S.wa="day";refreshWa();$("wdlg").showModal()};
+$("wd").onclick=function(){S.wa="day";refreshWa()};$("ww").onclick=function(){S.wa="week";refreshWa()};
+$("wcl").onclick=function(){$("wdlg").close()};
+$("wcp").onclick=function(){var t=$("wmsg");var ok=function(){$("werr").textContent="Mensagem copiada."};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(ok).catch(function(){t.select();document.execCommand("copy");ok()});
+  else{t.select();document.execCommand("copy");ok()}};
+$("wgo").onclick=function(){
+  var msg=$("wmsg").value.trim(),ph=$("wph").value.replace(/\D/g,"");
+  if(!msg){$("werr").textContent="A mensagem está vazia.";return}
+  if(ph){if(/^\d{10,11}$/.test(ph))ph="55"+ph;if(!/^55\d{10,11}$/.test(ph)){$("werr").textContent="Número inválido. Use DDD + número.";return}}
+  window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(msg),"_blank","noopener");
+};
+
+/* Início */
+if(!window.supabase||!CFG.url||CFG.url.indexOf("COLE_")===0){showLogin("Sistema não configurado: informe a URL e a chave do Supabase no index.html.")}
+else{
+  try {
+    sb=window.supabase.createClient(CFG.url,CFG.key);
+    // Exibe o login imediatamente; não depende do evento assíncrono INITIAL_SESSION para mostrar a tela.
+    showLogin();
+    sb.auth.onAuthStateChange(function(ev, session) {
+      if (ev === "INITIAL_SESSION") {
+        if (session && new URLSearchParams(window.location.hash.slice(1)).get("type")==="recovery") setTimeout(showPasswordRecovery,0);
+        else if (session) acceptUser(session.user);
+        else { S.uid=null; showLogin(); }
+        return;
+      }
+      if (!session) { S.uid=null; showLogin(); return; }
+      if (ev === "PASSWORD_RECOVERY") { S.uid=session.user.id; setTimeout(showPasswordRecovery,0); return; }
+      if (ev === "SIGNED_IN") acceptUser(session.user);
+    });
+  } catch(e) {
+    console.error("Falha ao inicializar autenticação:",e);
+    showLogin("Não foi possível iniciar a conexão de autenticação. Recarregue a página.");
+  }
+}
+render();
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
