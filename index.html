@@ -167,7 +167,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
       <label>Nome do evento<input id="fn" maxlength="120" autocomplete="off"></label>
       <label>Descrição<textarea id="fdesc" maxlength="2000" rows="3"></textarea></label>
       <div class="row"><label>Data inicial<input id="fd" type="date" required></label><label>Data final (opcional)<input id="fde" type="date"></label></div>
-      <div class="row"><label>Horário inicial<input id="fh" type="time" required></label><label>Horário final (opcional)<input id="fhe" type="time"></label></div>
+      <div class="row"><label>Horário inicial<input id="fh" type="time"></label><label>Horário final (opcional)<input id="fhe" type="time"></label></div>
       <label>Autoridades confirmadas<textarea id="fauth" maxlength="2000" rows="2"></textarea></label>
       <label>Cidade<input id="fc" maxlength="80" autocomplete="off"></label>
       <label>Endereço<input id="faddr" maxlength="200" autocomplete="off"></label>
@@ -261,11 +261,10 @@ $("add").onclick=function(){openForm(null)};$("cancel").onclick=function(){$("dl
 $("f").addEventListener("submit",function(ev){
   ev.preventDefault();
   var v={title:$("fn").value.trim(),description:$("fdesc").value.trim(),date:$("fd").value,date_end:$("fde").value||null,time:$("fh").value,time_end:$("fhe").value||null,authorities:$("fauth").value.trim(),city:$("fc").value.trim(),address:$("faddr").value.trim()},bad=[];
-  var map={title:"fn",date:"fd",time:"fh"},lab={title:"Nome do evento",date:"Data inicial",time:"Horário inicial"};
+  var map={title:"fn",date:"fd"},lab={title:"Nome do evento",date:"Data inicial"};
   Object.keys(map).forEach(function(k){var ok=!!v[k];if(k==="date"&&ok){var d=parse(v.date);ok=!isNaN(d)&&iso(d)===v.date&&d.getFullYear()>=2000&&d.getFullYear()<=2100}$(map[k]).setAttribute("aria-invalid",!ok);if(!ok)bad.push(lab[k])});
   ["fde","fhe"].forEach(function(i){$(i).removeAttribute("aria-invalid")});
   if(v.date_end){var ds=parse(v.date),de=parse(v.date_end);if(isNaN(de)||iso(de)!==v.date_end||de<ds){$("fde").setAttribute("aria-invalid","true");bad.push("Data final igual ou posterior à data inicial")}}
-  if(v.time_end&&v.time_end<v.time){$("fhe").setAttribute("aria-invalid","true");bad.push("Horário final igual ou posterior ao inicial")}
   if(bad.length){$("ferr").textContent="Corrija: "+bad.join("; ")+".";return}
   if(!S.type){$("ferr").textContent="Selecione a categoria do evento.";return}v.type=S.type;v.updatedAt=Date.now();$("save").disabled=true;
   var p=S.editing?S.col.doc(S.editing.id).set(v):S.col.add(v);
