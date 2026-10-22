@@ -139,7 +139,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
   <footer class="foot">Desenvolvido por Pedro Gustavo F. A. / Ascom</footer>
 </div>
 
-<main id="login" class="login" hidden>
+<main id="login" class="login">
   <form class="card lbox" id="lf" novalidate>
     <div><h1>Agenda da Presidência</h1><p class="sub">INSS · acesso restrito</p></div>
     <label>E-mail<input id="le" type="email" autocomplete="username"></label>
@@ -365,4 +365,37 @@ else{
       if (ev === "INITIAL_SESSION") {
         if (session) {
           S.uid = session.user.id;
-    
+          enter(session.user);
+        } else {
+          showLogin();
+        }
+        return;
+      }
+      if (!session) {
+        S.uid = null;
+        showLogin();
+        return;
+      }
+      if (ev === "SIGNED_IN" && S.uid !== session.user.id) {
+        S.uid = session.user.id;
+        enter(session.user);
+      }
+    });
+  } catch(e) {
+    console.error("Falha ao inicializar autenticação:",e);
+    showLogin("Não foi possível iniciar a conexão de autenticação. Recarregue a página.");
+  }
+}
+render();
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
