@@ -105,6 +105,8 @@ input[aria-invalid="true"]{border-color:var(--danger)}
 textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font:inherit;color:inherit;resize:vertical}
 .login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .lbox{width:min(400px,100%);padding:28px;display:grid;gap:14px}.lbox h1{margin:0;font-size:22px}.lbox .sub{margin:0}
+.link-button{border:0;background:none;color:var(--brand);padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-weight:600;justify-self:start}
+.link-button:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:3px}
 .lbox .btn.loading{display:inline-flex;align-items:center;justify-content:center;gap:9px;opacity:.9;cursor:wait}
 .lbox .btn.loading::after{content:"";width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:login-spin .7s linear infinite}
 @keyframes login-spin{to{transform:rotate(360deg)}}
@@ -146,9 +148,23 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
     <label>Senha<input id="lp" type="password" autocomplete="current-password"></label>
     <div class="err" id="lerr" role="alert"></div>
     <button class="btn primary" id="lb" type="submit">Entrar</button>
+    <button class="link-button" id="forgot" type="button">Atualize sua senha ou esqueceu sua senha?</button>
     <div class="foot" style="margin:6px 0 0">Desenvolvido por Pedro Gustavo F. A. / Ascom</div>
   </form>
 </main>
+
+<dialog id="pdlg" aria-labelledby="ptitle">
+  <div class="mh"><h3 id="ptitle">Definir nova senha</h3></div>
+  <form id="pform" novalidate>
+    <div class="mb">
+      <p style="margin:0;color:var(--mute)">Escolha uma nova senha para sua conta.</p>
+      <label>Nova senha<input id="pnew" type="password" autocomplete="new-password" required></label>
+      <label>Confirme a nova senha<input id="pconfirm" type="password" autocomplete="new-password" required></label>
+      <div class="err" id="perr" role="alert"></div>
+    </div>
+    <div class="mf"><button class="btn primary" id="psave" type="submit">Salvar nova senha</button></div>
+  </form>
+</dialog>
 
 <dialog id="wdlg">
   <div class="mh"><h3>Enviar agenda pelo WhatsApp</h3></div>
@@ -315,53 +331,49 @@ function acceptUser(user){
   // Executa consultas de perfil fora do callback protegido de autenticação do Supabase.
   setTimeout(function(){if(S.uid===user.id)enter(user)},0);
 }
+function showPasswordRecovery(){
+  $("login").hidden=true;$("app").hidden=true;
+  $("pnew").value="";$("pconfirm").value="";$("perr").textContent="";
+  if(!$("pdlg").open)$("pdlg").showModal();
+  setTimeout(function(){$("pnew").focus()},0);
+}
+$("forgot").onclick=async function(){
+  var email=$("le").value.trim(),button=$("forgot");
+  if(!email||!$("le").checkValidity()){$("lerr").textContent="Informe um e-mail válido para receber o link de recuperação.";$("le").focus();return}
+  button.disabled=true;$("lerr").textContent="Enviando instruções...";
+  try{
+    var redirectTo=window.location.origin+window.location.pathname;
+    var result=await sb.auth.resetPasswordForEmail(email,{redirectTo:redirectTo});
+    if(result.error)throw result.error;
+    $("lerr").textContent="Se houver uma conta para esse e-mail, enviaremos um link para atualizar a senha.";
+  }catch(e){
+    console.error("Falha ao solicitar recuperação de senha:",e);
+    $("lerr").textContent="Não foi possível enviar o e-mail agora. Confira sua conexão e tente novamente.";
+  }finally{button.disabled=false}
+};
+$("pform").addEventListener("submit",async function(ev){
+  ev.preventDefault();var password=$("pnew").value,confirmation=$("pconfirm").value,button=$("psave");
+  if(!password||!confirmation){$("perr").textContent="Preencha e confirme a nova senha.";return}
+  if(password.length<8){$("perr").textContent="A senha deve ter pelo menos 8 caracteres.";return}
+  if(password!==confirmation){$("perr").textContent="As senhas não coincidem.";return}
+  button.disabled=true;button.textContent="Salvando...";$("perr").textContent="";
+  try{
+    var result=await sb.auth.updateUser({password:password});
+    if(result.error)throw result.error;
+    $("pdlg").close();
+    try{await sb.auth.signOut({scope:"local"})}catch(_){}
+    S.uid=null;S.role=null;S.canWrite=false;
+    if(window.history&&window.history.replaceState)window.history.replaceState(null,"",window.location.pathname);
+    showLogin("Senha atualizada. Entre com sua nova senha.");
+  }catch(e){
+    console.error("Falha ao atualizar senha:",e);
+    $("perr").textContent=e&&e.message?"Não foi possível atualizar a senha: "+e.message:"Não foi possível atualizar a senha. Solicite um novo link e tente novamente.";
+  }finally{button.disabled=false;button.textContent="Salvar nova senha"}
+});
 $("lf").addEventListener("submit",function(ev){
   ev.preventDefault();var em=$("le").value.trim(),pw=$("lp").value;
   if(!em||!pw){$("lerr").textContent="Informe e-mail e senha.";return}
   $("lb").disabled=true;$("lb").classList.add("loading");$("lb").setAttribute("aria-busy","true");$("lb").textContent="Entrando...";$("lerr").textContent="";
   sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
     if(r.error){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lp").value="";$("lerr").textContent=r.error.status===429?"Muitas tentativas. Aguarde um instante.":"E-mail ou senha incorretos.";return}
-    var user=r.data&&r.data.user;if(!user){$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="O Supabase não retornou o usuário autenticado. Tente novamente.";return}
-    acceptUser(user);
-  }).catch(function(e){console.error("Falha no login:",e);$("lb").disabled=false;$("lb").classList.remove("loading");$("lb").setAttribute("aria-busy","false");$("lb").textContent="Entrar";$("lerr").textContent="Falha de conexão. Tente novamente."});
-});
-$("out").onclick=async function(){
-  var b=$("out");b.disabled=true;
-  try{
-    var r=await sb.auth.signOut({scope:"local"});
-    if(r.error)throw r.error;
-    S.uid=null;S.role=null;S.canWrite=false;
-    showLogin("Sessão encerrada.");
-  }catch(e){
-    b.disabled=false;
-    banner("Não foi possível sair. Verifique sua conexão e tente novamente.");
-  }
-};
-document.addEventListener("visibilitychange",function(){if(sb&&S.uid&&!document.hidden)load()});
-
-/* WhatsApp */
-var WD=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];S.wa="day";
-function cl(t){return String(t||"").replace(/[*_~`]/g,"")}
-function buildMsg(mode){
-  var map=byDay(),out=["*📅 AGENDA DA PRESIDÊNCIA – INSS*"],days=[],d0=parse(S.sel);
-  if(mode==="day")days=[S.sel];
-  else{for(var i=0;i<7;i++)days.push(iso(new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()-d0.getDay()+i)));out.push("Semana de "+fmtS.format(parse(days[0]))+" a "+fmtS.format(parse(days[6])))}
-  var any=false;
-  days.forEach(function(s){var l=map[s]||[];if(mode==="week"&&!l.length)return;any=true;var d=parse(s);
-    out.push("","*"+WD[d.getDay()]+", "+fmtS.format(d)+"*");if(!l.length)out.push("Sem compromissos.");
-    l.forEach(function(e){out.push("🕐 "+(e.time||"--:--")+(e.time_end?" até "+e.time_end:"")+" – *"+cl(e.title)+"*","     _"+typeOf(e).n+"_");if(e.description)out.push("     "+cl(e.description));if(e.area)out.push("     Área: "+cl(e.area));if(e.responsible)out.push("     Responsável: "+cl(e.responsible));if(e.authorities)out.push("     Autoridades confirmadas: "+cl(e.authorities));out.push("     📍 "+cl(e.city)+(e.address?" – "+cl(e.address):""))})});
-  if(!any)out.push("","Nenhum compromisso no período.");
-  return out.join("\n")
-}
-function refreshWa(){$("wd").setAttribute("aria-pressed",S.wa==="day");$("ww").setAttribute("aria-pressed",S.wa==="week");$("wmsg").value=buildMsg(S.wa);$("werr").textContent=""}
-$("wa").onclick=function(){S.wa="day";refreshWa();$("wdlg").showModal()};
-$("wd").onclick=function(){S.wa="day";refreshWa()};$("ww").onclick=function(){S.wa="week";refreshWa()};
-$("wcl").onclick=function(){$("wdlg").close()};
-$("wcp").onclick=function(){var t=$("wmsg");var ok=function(){$("werr").textContent="Mensagem copiada."};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(ok).catch(function(){t.select();document.execCommand("copy");ok()});
-  else{t.select();document.execCommand("copy");ok()}};
-$("wgo").onclick=function(){
-  var msg=$("wmsg").value.trim(),ph=$("wph").value.replace(/\D/g,"");
-  if(!msg){$("werr").textContent="A mensagem está vazia.";return}
-  if(ph){if(/^\d{10,11}$/.test(ph))ph="55"+ph;if(!/^55\d{10,11}$/.test(ph)){$("werr").textContent="Número inválido. Use DDD + número.";return}}
-  window.open("https://wa.me/"+ph+"?text="+encodeURICompon
+    var user=r.data&&r.data.user
