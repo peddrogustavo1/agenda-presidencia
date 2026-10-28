@@ -70,12 +70,18 @@ input[aria-invalid="true"]{border-color:var(--danger)}
   input,select,textarea{font-size:16px}
   .wrap{padding:12px 10px 24px}
   header.top{align-items:flex-start;gap:10px;margin-bottom:12px}
-  .brand{min-width:0;flex:1 1 100%}
-  .brand h1{font-size:18px;line-height:1.25}
-  .brand p{font-size:12px}
-  .bar{gap:6px}
-  header.top>.bar{width:100%;justify-content:flex-start}
-  .btn,.seg button{padding:7px 10px;font-size:13px}
+  .brand{min-width:0;flex:1 1 100%;width:100%;gap:10px;align-items:center}
+  .brand > div{min-width:0;flex:1 1 auto}
+  .brand .official-logo{width:68px;height:44px;max-width:68px;padding:3px}
+  .brand h1{font-size:17px;line-height:1.2;overflow-wrap:anywhere}
+  .brand p{font-size:12px;line-height:1.35;margin-top:4px}
+  .brand .badge{display:table;margin:4px 0 0;vertical-align:top}
+  .bar{gap:6px;min-width:0}
+  header.top>.bar{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}
+  header.top>.bar>*{min-width:0;width:100%;justify-content:center}
+  header.top>.bar .seg{display:flex}
+  header.top>.bar .seg button{flex:1 1 50%;min-width:0}
+  .btn,.seg button{padding:8px 9px;font-size:13px;white-space:normal;line-height:1.25}
 .calendar-picker{align-items:flex-start;padding:10px;gap:8px}.calendar-picker>strong{width:100%}.calnav{width:100%}.calnav button{flex:1 1 auto;padding:7px 9px;font-size:12px}
   .card{min-width:0}
   .calhead{padding:10px;gap:5px}
@@ -96,6 +102,10 @@ input[aria-invalid="true"]{border-color:var(--danger)}
   .lbox{padding:22px 18px}
 }
 @media (max-width:360px){
+  .brand{gap:8px}
+  .brand .official-logo{width:60px;height:40px;max-width:60px}
+  .brand h1{font-size:16px}
+  header.top>.bar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .wrap{padding-left:7px;padding-right:7px}
   .calhead{padding:8px 6px}
   .calhead h2{font-size:14px}
