@@ -48,7 +48,7 @@ header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-conte
 .sub{color:var(--mute);font-size:13px;margin-bottom:12px}
 .ev{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:10px 12px;margin-bottom:10px}
 .ev .t{font-weight:700}.ev .m{font-size:13px;color:var(--mute)}.ev .k{font-size:11px;font-weight:700;color:var(--c);text-transform:uppercase;letter-spacing:.04em}
-.ev .acts{display:flex;gap:6px;margin-top:8px}.ev .btn{padding:4px 10px;font-size:13px}
+.ev .acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.ev .btn{padding:4px 10px;font-size:13px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:34px}
 .empty{color:var(--mute);font-size:14px;padding:12px 0}
 dialog{border:0;border-radius:18px;padding:0;width:min(520px,calc(100% - 24px));background:var(--card);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
 dialog::backdrop{background:rgba(10,15,30,.55)}
@@ -265,6 +265,21 @@ function renderDay(map){
     c.appendChild(el("div","m","🕐 "+(e.time||"—")+(e.time_end?" até "+e.time_end:"")));
     if(e.description)c.appendChild(el("div","m",e.description));if(e.area)c.appendChild(el("div","m","Área: "+e.area));if(e.responsible)c.appendChild(el("div","m","Responsável: "+e.responsible));if(e.authorities)c.appendChild(el("div","m","Autoridades confirmadas: "+e.authorities));
     c.appendChild(el("div","m","📍 "+(e.city||"—")));if(e.address)c.appendChild(el("div","m",e.address));
+    // Só exibe os atalhos de navegação quando o evento possui endereço.
+    if(e.address && String(e.address).trim()){
+      var nav=el("div","acts");
+      var destination=[e.address,e.city].filter(function(x){return x&&String(x).trim()}).join(", ");
+      var query=encodeURIComponent(destination);
+      var maps=el("a","btn","Abrir Google Maps");
+      maps.href="https://www.google.com/maps/search/?api=1&query="+query;
+      maps.target="_blank";maps.rel="noopener noreferrer";
+      maps.setAttribute("aria-label","Abrir endereço no Google Maps");
+      var waze=el("a","btn","Abrir Waze");
+      waze.href="https://waze.com/ul?q="+query+"&navigate=yes";
+      waze.target="_blank";waze.rel="noopener noreferrer";
+      waze.setAttribute("aria-label","Abrir endereço no Waze");
+      nav.appendChild(maps);nav.appendChild(waze);c.appendChild(nav);
+    }
     if(S.canWrite){var a=el("div","acts"),be=el("button","btn","Editar"),bd=el("button","btn danger",S.delArm===e.id?"Confirmar exclusão":"Excluir");
       be.type=bd.type="button";be.onclick=function(){openForm(e)};
       bd.onclick=function(){if(S.delArm!==e.id){S.delArm=e.id;renderDay();setTimeout(function(){if(S.delArm===e.id){S.delArm=null;renderDay()}},4000);return}
