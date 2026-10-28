@@ -202,7 +202,7 @@ textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-rad
 <script>
 (function(){
 "use strict";
-var TYPES=[{k:"cap",n:"Capacitação - EAD",c:"var(--t1)"},{k:"rt",n:"Reunião Técnica",c:"var(--t2)"},{k:"mut",n:"Mutirão",c:"var(--t3)"},{k:"dc",n:"Eventos Direção Central",c:"var(--t4)"},{k:"per",n:"Outros",c:"var(--t5)"}];
+var TYPES=[{k:"cap",n:"Capacitação - EAD",c:"var(--t1)"},{k:"dc",n:"Eventos Direção Central",c:"var(--t4)"},{k:"aps",n:"Inauguração de APS",c:"color-mix(in srgb,#e11d74 72%,var(--ink))"},{k:"mut",n:"Mutirão",c:"var(--t3)"},{k:"rt",n:"Reunião Técnica",c:"var(--t2)"},{k:"per",n:"Outros",c:"var(--t5)"}];
 var tmap={};TYPES.forEach(function(t){tmap[t.k]=t});
 var $=function(i){return document.getElementById(i)};
 var pad=function(n){return String(n).padStart(2,"0")};
@@ -452,11 +452,3 @@ render();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
